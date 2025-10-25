@@ -1,0 +1,82 @@
+{
+	"name": "df_gold_dim_fecha",
+	"properties": {
+		"folder": {
+			"name": "Gold"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_llamadas",
+						"type": "DatasetReference"
+					},
+					"name": "fechaLlamadas"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_datos",
+						"type": "DatasetReference"
+					},
+					"name": "FechaInicio"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_silver_datos",
+						"type": "DatasetReference"
+					},
+					"name": "source3"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "union1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          servicio as string,",
+				"          registro as string,",
+				"          numero_a as string,",
+				"          imei_a as string,",
+				"          rbs_utilizada_a as string,",
+				"          celda_a as string,",
+				"          latitud_a as decimal(10,7),",
+				"          longitud_a as decimal(10,7),",
+				"          numero_b as string,",
+				"          imei_b as string,",
+				"          rbs_utilizada_b as string,",
+				"          celda_b as string,",
+				"          latitud_b as decimal(10,7),",
+				"          longitud_b as decimal(10,7),",
+				"          fecha as timestamp,",
+				"          duracion as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select DISTINCT fecha from silver.llamadas',",
+				"     format: 'query') ~> fechaLlamadas",
+				"source(output(",
+				"          fecha as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT fecha_inicio as fecha from silver.datos\\n',",
+				"     format: 'query') ~> FechaInicio",
+				"source(output(",
+				"          fecha as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select distinct fecha_fin as fecha from silver.datos',",
+				"     format: 'query') ~> source3",
+				"fechaLlamadas, FechaInicio union(byName: true)~> union1"
+			]
+		}
+	}
+}
